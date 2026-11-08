@@ -409,7 +409,7 @@
   gap: 10px;
 }
 .tree-items span {
-  background: #FFFFFF;
+  background: var(--card-bg);
   border: 1px solid var(--c-border);
   padding: 5px 12px;
   border-radius: var(--radius-xs);
@@ -426,7 +426,7 @@
 }
 .tree-core strong {
   font-size: 17px;
-  color: #B91C1C;
+  color: var(--c-fail);
   line-height: 1.35;
 }
 .tree-impact {
@@ -437,7 +437,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
-  color: var(--c-gold-hover);
+  color: var(--c-gold-primary);
   font-size: 13px;
   font-weight: 600;
 }
@@ -1363,9 +1363,19 @@ body.theme-dark .pillar h3,
 body.theme-dark .layer h3,
 body.theme-dark .bmc-cell h4,
 body.theme-dark .phase-card h3,
+body.theme-dark .rm-step h4,
+body.theme-dark .panel-head h3,
 body.theme-dark .alt-card h3,
+body.theme-dark .fx-row strong,
+body.theme-dark .cycle-center strong,
+body.theme-dark .rl b,
 body.theme-dark .quote b {
   color: #FFFFFF !important;
+}
+
+body.theme-dark .fx-metric strong,
+:root[data-theme="dark"] .fx-metric strong {
+  color: var(--c-gold-primary) !important;
 }
 
 body.theme-dark .s-head,
@@ -1387,24 +1397,83 @@ body.theme-dark .s-foot-brand,
 body.theme-dark .alt-card,
 body.theme-dark .pillar,
 body.theme-dark .layer,
+body.theme-dark .layer.l1,
 body.theme-dark .cycle-node,
 body.theme-dark .bmc-cell,
 body.theme-dark .phase-card,
+body.theme-dark .rm-step,
 body.theme-dark .fx-card,
 body.theme-dark .quote,
 body.theme-dark .panel,
 :root[data-theme="dark"] .alt-card,
 :root[data-theme="dark"] .pillar,
 :root[data-theme="dark"] .layer,
+:root[data-theme="dark"] .layer.l1,
 :root[data-theme="dark"] .cycle-node,
 :root[data-theme="dark"] .bmc-cell,
 :root[data-theme="dark"] .phase-card,
+:root[data-theme="dark"] .rm-step,
 :root[data-theme="dark"] .fx-card,
 :root[data-theme="dark"] .quote,
 :root[data-theme="dark"] .panel {
   background: #140E3E !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
   color: #CBD5E1;
+}
+
+body.theme-dark .layer.l1,
+:root[data-theme="dark"] .layer.l1 {
+  border-left: 4px solid var(--c-cobalt-primary) !important;
+}
+
+body.theme-dark .rm-dot,
+:root[data-theme="dark"] .rm-dot {
+  background: #19124D;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #F8FAFC;
+}
+
+body.theme-dark .rm-step.current .rm-dot,
+:root[data-theme="dark"] .rm-step.current .rm-dot {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: var(--c-cobalt-primary);
+  color: #93C5FD;
+}
+
+body.theme-dark .tree-items span,
+:root[data-theme="dark"] .tree-items span {
+  background: #1B1352 !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: #F8FAFC !important;
+}
+
+body.theme-dark .tree-core strong,
+:root[data-theme="dark"] .tree-core strong {
+  color: #FCA5A5 !important;
+}
+
+body.theme-dark .tree-impact,
+:root[data-theme="dark"] .tree-impact {
+  color: #FDE68A !important;
+}
+
+body.theme-dark .alt-icon,
+body.theme-dark .p-icon.blue,
+:root[data-theme="dark"] .alt-icon,
+:root[data-theme="dark"] .p-icon.blue {
+  background: rgba(59, 130, 246, 0.2) !important;
+  color: #60A5FA !important;
+}
+
+body.theme-dark .s3-gap p,
+:root[data-theme="dark"] .s3-gap p {
+  color: #F8FAFC !important;
+}
+
+body.theme-dark .gap-pill,
+:root[data-theme="dark"] .gap-pill {
+  background: var(--c-cobalt-primary) !important;
+  color: #FFFFFF !important;
 }
 
 body.theme-dark .quote.tutor,

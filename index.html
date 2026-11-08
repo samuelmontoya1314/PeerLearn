@@ -71,7 +71,12 @@
           <h2 id="crumb-title">Explorar tutores</h2>
         </div>
         <div class="topbar-actions">
-          <div class="demo-pill"><span class="pulse"></span>Demo interactiva · datos simulados</div>
+          <button class="cloud-pill" id="cloud-status" type="button" title="Estado de sincronización con Base de Datos Global">
+            <span class="dot-online"></span><span id="cloud-label">DB Global · En línea</span>
+          </button>
+          <button class="btn btn-secondary sm" id="login-btn" type="button" title="Iniciar sesión o cambiar de cuenta institucional">
+            <i data-icon="log-in" data-size="15"></i><span>Iniciar sesión</span>
+          </button>
           <button class="icon-btn theme-toggle-btn" id="theme-toggle" type="button" aria-label="Cambiar tema"
             title="Alternar modo oscuro/claro (tecla T)">
             <i data-icon="sun" class="icon-sun"></i>

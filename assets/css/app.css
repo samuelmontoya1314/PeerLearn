@@ -2823,3 +2823,118 @@ body.theme-dark .cert-head {
   font-size: 11px;
   width: 180px;
 }
+
+/* =========================================================================
+   SISTEMA DE LOGIN INSTITUCIONAL (@pascualbravo.edu.co) & CLOUD DB STATUS
+   ========================================================================= */
+.modal-card.auth {
+  max-width: 520px;
+  width: 95%;
+}
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-slate-callout);
+}
+.auth-tab {
+  flex: 1;
+  padding: 11px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--c-text-muted);
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.auth-tab.active {
+  color: var(--c-cobalt-primary);
+  border-bottom-color: var(--c-cobalt-primary);
+  background: var(--card-bg);
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.auth-field label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+  letter-spacing: 0.04em;
+}
+.auth-field input,
+.auth-field select {
+  background: var(--c-slate-callout);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-xs);
+  padding: 9px 12px;
+  color: var(--c-text-strong);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+}
+.auth-field input:focus,
+.auth-field select:focus {
+  border-color: var(--c-cobalt-primary);
+}
+.auth-roles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.auth-role-btn {
+  background: var(--c-slate-callout);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-xs);
+  padding: 10px 8px;
+  color: var(--c-text-body);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.12s ease;
+}
+.auth-role-btn b {
+  display: block;
+  font-size: 12px;
+  margin-top: 4px;
+  color: var(--c-text-strong);
+}
+.auth-role-btn small {
+  font-size: 10px;
+  color: var(--c-text-muted);
+}
+.auth-role-btn.on {
+  background: var(--c-indigo-light);
+  border-color: var(--c-cobalt-primary);
+  box-shadow: 0 0 0 1px var(--c-cobalt-primary);
+}
+.cloud-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--c-success-bg);
+  border: 1px solid var(--c-success-br);
+  color: var(--c-success);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cloud-pill .dot-online {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c-success);
+  box-shadow: 0 0 6px var(--c-success);
+}

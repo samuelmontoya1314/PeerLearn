@@ -54,9 +54,153 @@
     return d;
   }
 
-  const tutorById = (id) => D.tutors.find((t) => t.id === id);
-  const subjectById = (id) => D.subjects.find((s) => s.id === id);
+  const tutorById = (id) => D.tutors.find((t) => t.id === id) || D.tutors[0];
+  const subjectById = (id) => D.subjects.find((s) => s.id === id) || D.subjects[0];
   const offerById = (id) => S.offers.find((o) => o.id === id);
+
+  /* =======================================================================
+     Base de Datos Global en Tiempo Real (Cloud Sync · ntfy SSE/JSON)
+     ======================================================================= */
+  const CLOUD_URL = 'https://ntfy.sh/peerlearn_pascualbravo_db_2026_v2';
+  const CLIENT_ID = 'pl_' + Math.random().toString(36).slice(2, 9);
+  let cloudStream = null;
+  let cloudEventsCount = 0;
+
+  function setCloudIndicator(online, label) {
+    const btn = $('#cloud-status');
+    if (!btn) return;
+    const dot = btn.querySelector('.dot-online');
+    const txt = btn.querySelector('span:last-child');
+    if (dot) dot.style.background = online ? '#10B981' : '#F59E0B';
+    if (txt && label) txt.textContent = label;
+  }
+
+  function pushCloudEvent(type, data) {
+    try {
+      fetch(CLOUD_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify({ clientId: CLIENT_ID, type: type, data: data, ts: Date.now() })
+      }).then(() => {
+        cloudEventsCount++;
+        setCloudIndicator(true, 'DB Global · Sincronizada');
+      }).catch(() => {
+        setCloudIndicator(false, 'DB Local · Offline');
+      });
+    } catch (_) {}
+  }
+
+  function applyCloudEvent(payload, isLive) {
+    if (!payload || !payload.type || !payload.data) return false;
+    if (isLive && payload.clientId === CLIENT_ID) return false;
+    const d = payload.data;
+    let changed = false;
+
+    if (payload.type === 'tutor_registered' && d.tutor) {
+      const exists = D.tutors.find((t) => t.id === d.tutor.id);
+      if (!exists) {
+        D.tutors.unshift(d.tutor);
+        changed = true;
+      }
+    } else if (payload.type === 'offer_created' && d.offer) {
+      if (d.tutor && !D.tutors.find((t) => t.id === d.tutor.id)) {
+        D.tutors.unshift(d.tutor);
+      }
+      if (!S.offers.find((o) => o.id === d.offer.id)) {
+        S.offers.unshift(d.offer);
+        changed = true;
+        if (isLive) {
+          const t = tutorById(d.offer.tutorId);
+          const s = subjectById(d.offer.subject);
+          toast({ type: 'info', title: '🌐 Nueva oferta en vivo: ' + s.short, body: t.name + ' publicó tutoría desde otro dispositivo.' });
+        }
+      }
+    } else if (payload.type === 'booking_created' && d.booking) {
+      const bk = Object.assign({}, d.booking, { start: new Date(d.booking.start) });
+      if (!S.bookings.find((b) => b.id === bk.id)) {
+        S.bookings.push(bk);
+        changed = true;
+        if (isLive) {
+          const s = subjectById(bk.subject);
+          toast({ type: 'info', title: '🌐 Nueva reserva en la nube', body: (d.studentName || 'Un compañero') + ' agendó ' + s.short + ' (' + bk.topic + ').' });
+        }
+      }
+      if (d.request && !S.requests.find((r) => r.id === d.request.id)) {
+        S.requests.unshift(d.request);
+        changed = true;
+      }
+    } else if (payload.type === 'booking_completed' && d.bookingId) {
+      const b = S.bookings.find((x) => x.id === d.bookingId);
+      if (b && b.status !== 'completada') {
+        b.status = 'completada';
+        b.attendance = true;
+        changed = true;
+      }
+    } else if (payload.type === 'rating_submitted' && d.tutorId) {
+      const t = tutorById(d.tutorId);
+      if (t && d.review) {
+        t.rating = d.newRating || t.rating;
+        t.reviews = d.newReviews || (t.reviews + 1);
+        t.reviewsList.unshift(d.review);
+        changed = true;
+        if (isLive) {
+          toast({ type: 'success', title: '🌐 Nueva reseña verificada', body: d.review.author + ' calificó a ' + first(t.name) + ' con ' + d.review.rating + ' ★' });
+        }
+      }
+    }
+
+    if (changed) {
+      cloudEventsCount++;
+      saveState();
+      if (isLive && !modal().classList.contains('open')) render();
+      updateBadges();
+    }
+    return changed;
+  }
+
+  function syncCloudDB(showFeedback) {
+    setCloudIndicator(true, 'DB Global · Sincronizando...');
+    fetch(CLOUD_URL + '/json?poll=1&since=24h')
+      .then((res) => res.text())
+      .then((text) => {
+        const lines = text.trim().split('\n').filter(Boolean);
+        let applied = 0;
+        lines.forEach((line) => {
+          try {
+            const msg = JSON.parse(line);
+            if (msg.event === 'message' && msg.message) {
+              const ev = JSON.parse(msg.message);
+              if (applyCloudEvent(ev, false)) applied++;
+            }
+          } catch (_) {}
+        });
+        setCloudIndicator(true, 'DB Global · En línea');
+        if (applied > 0 && !modal().classList.contains('open')) render();
+        if (showFeedback) {
+          toast({ type: 'success', title: 'Base de datos global sincronizada', body: 'Conectado al clúster en tiempo real de I.U. Pascual Bravo.' });
+        }
+      })
+      .catch(() => {
+        setCloudIndicator(false, 'DB Local · Activa');
+      });
+  }
+
+  function listenCloudStream() {
+    if (typeof EventSource === 'undefined') return;
+    try {
+      if (cloudStream) cloudStream.close();
+      cloudStream = new EventSource(CLOUD_URL + '/sse');
+      cloudStream.onopen = () => setCloudIndicator(true, 'DB Global · En línea');
+      cloudStream.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          const payload = data.message ? JSON.parse(data.message) : data;
+          applyCloudEvent(payload, true);
+        } catch (_) {}
+      };
+      cloudStream.onerror = () => setCloudIndicator(false, 'DB Global · Reconectando');
+    } catch (_) {}
+  }
 
   function avatar(p, size, extra) {
     const s = size || 40;
@@ -86,7 +230,9 @@
     policy: { reminders: true, confirm2h: true, limitNoShows: true },
     bk: null,
     rt: null,
-    tf: null
+    tf: null,
+    activeTutorId: 't1',
+    userSession: null
   };
 
   function saveState() {
@@ -94,7 +240,11 @@
       const payload = {
         bookings: S.bookings,
         offers: S.offers,
-        requests: S.requests
+        requests: S.requests,
+        tutors: D.tutors,
+        personas: D.personas,
+        activeTutorId: S.activeTutorId,
+        userSession: S.userSession
       };
       localStorage.setItem('peerlearn_sim_data', JSON.stringify(payload));
     } catch (_) {}
@@ -115,6 +265,10 @@
         S.bookings = saved.bookings;
         if (Array.isArray(saved.offers) && saved.offers.length) S.offers = saved.offers;
         if (Array.isArray(saved.requests)) S.requests = saved.requests;
+        if (Array.isArray(saved.tutors) && saved.tutors.length) D.tutors = saved.tutors;
+        if (saved.personas) Object.assign(D.personas, saved.personas);
+        if (saved.activeTutorId) S.activeTutorId = saved.activeTutorId;
+        if (saved.userSession) S.userSession = saved.userSession;
       }
     } catch (_) {}
     S.notifs = [
@@ -278,12 +432,18 @@
 
   function renderPersona(key) {
     const p = D.personas[key] || D.personas.student;
+    const loginBtn = $('#login-btn');
+    if (loginBtn) {
+      const span = loginBtn.querySelector('span');
+      if (span) span.textContent = S.userSession ? first(S.userSession.name) + ' · Activo' : 'Iniciar sesión';
+    }
     $('#persona').innerHTML = avatar(p, 38) + '<div class="persona-copy"><b>' + esc(p.name) + '</b><small>' + esc(p.detail) + '</small></div>' +
       '<div class="persona-dropdown" id="persona-dropdown">' +
-        '<button type="button" class="persona-opt ' + (key === 'student' ? 'active' : '') + '" data-set-persona="student">' + avatar(D.personas.student, 28) + '<div><b>Juan Carrascal</b><small style="display:block;font-size:10.5px;color:var(--c-text-muted);">Estudiante (1.er semestre)</small></div></button>' +
-        '<button type="button" class="persona-opt ' + (key === 'tutor' ? 'active' : '') + '" data-set-persona="tutor">' + avatar(D.personas.tutor, 28) + '<div><b>Laura Restrepo</b><small style="display:block;font-size:10.5px;color:var(--c-text-muted);">Tutora par (8.º semestre)</small></div></button>' +
-        '<button type="button" class="persona-opt ' + (key === 'inst' ? 'active' : '') + '" data-set-persona="inst">' + avatar(D.personas.inst, 28) + '<div><b>Bienestar Universitario</b><small style="display:block;font-size:10.5px;color:var(--c-text-muted);">Dirección Académica B2B</small></div></button>' +
+        '<button type="button" class="persona-opt ' + (key === 'student' ? 'active' : '') + '" data-set-persona="student">' + avatar(D.personas.student, 28) + '<div><b>' + esc(D.personas.student.name) + '</b><small style="display:block;font-size:10.5px;color:var(--c-text-muted);">' + esc(D.personas.student.detail) + '</small></div></button>' +
+        '<button type="button" class="persona-opt ' + (key === 'tutor' ? 'active' : '') + '" data-set-persona="tutor">' + avatar(D.personas.tutor, 28) + '<div><b>' + esc(D.personas.tutor.name) + '</b><small style="display:block;font-size:10.5px;color:var(--c-text-muted);">' + esc(D.personas.tutor.detail) + '</small></div></button>' +
+        '<button type="button" class="persona-opt ' + (key === 'inst' ? 'active' : '') + '" data-set-persona="inst">' + avatar(D.personas.inst, 28) + '<div><b>' + esc(D.personas.inst.name) + '</b><small style="display:block;font-size:10.5px;color:var(--c-text-muted);">' + esc(D.personas.inst.detail) + '</small></div></button>' +
         '<div style="border-top:1px solid var(--c-border);margin:4px 0;"></div>' +
+        '<button type="button" class="persona-opt" data-open-login="1" style="font-size:11.5px;color:var(--c-blue-electric);">' + I('user', 15) + '<span>Iniciar sesión con otro correo</span></button>' +
         '<button type="button" class="persona-opt" data-reset-demo="1" style="font-size:11.5px;color:var(--c-gold-primary);">' + I('repeat', 15) + '<span>Reiniciar datos de la demo</span></button>' +
       '</div>';
     PL.hydrateIcons($('#persona-dropdown'));
@@ -372,7 +532,7 @@
       '<section class="view view-explorar">' +
         '<div class="hero">' +
           '<div class="hero-main">' +
-            '<span class="eyebrow mono">' + greet + ', Juan</span>' +
+            '<span class="eyebrow mono">' + greet + ', ' + esc(first(D.personas.student.name)) + '</span>' +
             '<h1>¿Qué tema se te está complicando hoy?</h1>' +
             '<p>Encuentra un tutor par que ya aprobó la materia, revisa su nota verificada y agenda en tu hueco libre.</p>' +
             '<label class="searchbox">' + I('search', 20) + '<input id="q" type="search" autocomplete="off" placeholder="Busca un tema, asignatura o tutor… ej. árboles binarios" value="' + esc(f.q) + '"><kbd>/</kbd></label>' +
@@ -605,8 +765,24 @@
     const bk = S.bk, o = offerById(bk.offerId), t = tutorById(o.tutorId), s = subjectById(o.subject);
     const start = at(bk.day, bk.slot);
     const b = { id: 'b' + Date.now(), offerId: o.id, tutorId: t.id, subject: o.subject, topic: bk.topic, start: start, modality: bk.modality, location: bk.modality === 'presencial' ? t.place : 'Google Meet', status: 'pendiente', note: bk.note, rate: o.incentive === 'pago' ? o.rate : 0, isNew: true };
+    const req = {
+      id: 'r' + Date.now(),
+      student: D.personas.student.name,
+      initials: D.personas.student.initials || initials(D.personas.student.name),
+      hue: D.personas.student.hue || 218,
+      semester: 1,
+      subject: o.subject,
+      topic: bk.topic,
+      dayOffset: Math.max(0, Math.round((startOf(start) - today0()) / DAY)),
+      time: bk.slot,
+      modality: bk.modality,
+      note: bk.note || 'Necesito repasar este tema para el próximo taller.',
+      status: 'pendiente'
+    };
     S.bookings.push(b);
+    S.requests.unshift(req);
     saveState();
+    pushCloudEvent('booking_created', { booking: b, request: req, studentName: D.personas.student.name });
     bk.step = 4; bk.bookingId = b.id;
     renderBooking();
     updateBadges();
@@ -775,10 +951,12 @@
     b.reviewed = true; b.rating = rt.stars;
     t.rating = Math.round(((t.rating * t.reviews + rt.stars) / (t.reviews + 1)) * 10) / 10;
     t.reviews += 1;
-    t.reviewsList.unshift({ author: 'Juan C.', subject: b.subject, rating: rt.stars, text: rt.comment || (rt.tags.length ? rt.tags.join(' · ') + '.' : 'Muy buena sesión.'), when: 'justo ahora' });
+    const rev = { author: D.personas.student.name || 'Juan C.', subject: b.subject, rating: rt.stars, text: rt.comment || (rt.tags.length ? rt.tags.join(' · ') + '.' : 'Muy buena sesión.'), when: 'justo ahora' };
+    t.reviewsList.unshift(rev);
     closeModal();
     saveState();
-    toast({ title: '¡Gracias por tu reseña!', body: 'Ya es visible en el perfil de ' + first(t.name) + ' y ayuda a otros a elegir con confianza.' });
+    pushCloudEvent('rating_submitted', { tutorId: t.id, newRating: t.rating, newReviews: t.reviews, review: rev });
+    toast({ title: '¡Gracias por tu reseña!', body: 'Ya es visible en el perfil de ' + first(t.name) + ' y se sincronizó en la base de datos global.' });
     render();
   }
 
@@ -809,8 +987,8 @@
             '<div class="video-label"><span style="color:#10B981;">●</span> ' + esc(t.name) + ' (Tutor par)</div>' +
           '</div>' +
           '<div class="video-tile">' +
-            '<div class="avatar-feed" style="background:#2563EB;">JC</div>' +
-            '<div class="video-label">Tú (Juan Carrascal)</div>' +
+            '<div class="avatar-feed" style="background:#2563EB;">' + esc(D.personas.student.initials || 'JC') + '</div>' +
+            '<div class="video-label">Tú (' + esc(D.personas.student.name) + ')</div>' +
           '</div>' +
           '<div style="display:flex;justify-content:center;gap:8px;padding-top:4px;">' +
             '<button class="icon-btn" type="button" title="Micrófono" onclick="this.classList.toggle(\'on-dark\');PL.app.toast({type:\'info\',title:\'Micrófono alternado\'})">' + I('sparkles', 16) + '</button>' +
@@ -918,6 +1096,103 @@
   }
 
   /* =======================================================================
+     Login Institucional (@pascualbravo.edu.co) y Modal de Base de Datos Global
+     ======================================================================= */
+  function openLoginModal() {
+    const curRole = S.view === 'tutor' ? 'tutor' : S.view === 'institucion' ? 'inst' : 'student';
+    const curUser = S.userSession || {
+      name: curRole === 'tutor' ? 'Laura Restrepo Calle' : curRole === 'inst' ? 'Ricardo José Ruiz Gaviria' : 'Juan Esteban Carrascal',
+      email: curRole === 'tutor' ? 'laura.restrepo@pascualbravo.edu.co' : curRole === 'inst' ? 'bienestar@pascualbravo.edu.co' : 'juan.carrascal@pascualbravo.edu.co',
+      program: 'Ingeniería de Software',
+      semester: curRole === 'tutor' ? '8' : '2',
+      role: curRole
+    };
+
+    const html = '' +
+      '<header class="m-head">' +
+        '<div><h3>Acceso Institucional · SIA Pascual Bravo</h3><p>Autenticación única con correo @pascualbravo.edu.co</p></div>' +
+        '<button class="icon-btn" data-close type="button" aria-label="Cerrar">' + I('x') + '</button>' +
+      '</header>' +
+      '<div class="m-body">' +
+        '<form id="pl-auth-form" class="auth-form" onsubmit="event.preventDefault();">' +
+          '<div class="auth-field">' +
+            '<label>Selecciona tu rol en la plataforma</label>' +
+            '<div class="auth-roles" id="auth-role-picker">' +
+              '<button type="button" class="auth-role-btn ' + (curUser.role === 'student' ? 'active' : '') + '" data-auth-role="student">' + I('user', 18) + '<b>Estudiante</b><small>Buscar tutoría</small></button>' +
+              '<button type="button" class="auth-role-btn ' + (curUser.role === 'tutor' ? 'active' : '') + '" data-auth-role="tutor">' + I('award', 18) + '<b>Tutor Par</b><small>Publicar oferta</small></button>' +
+              '<button type="button" class="auth-role-btn ' + (curUser.role === 'inst' ? 'active' : '') + '" data-auth-role="inst">' + I('building', 18) + '<b>Institución</b><small>Panel Bienestar</small></button>' +
+            '</div>' +
+            '<input type="hidden" id="auth-role" value="' + esc(curUser.role) + '">' +
+          '</div>' +
+          '<div class="auth-field">' +
+            '<label>Nombre completo</label>' +
+            '<input type="text" id="auth-name" required placeholder="Ej: Samuel Montoya Garzón" value="' + esc(curUser.name) + '">' +
+          '</div>' +
+          '<div class="auth-field">' +
+            '<label>Correo institucional</label>' +
+            '<input type="email" id="auth-email" required placeholder="usuario@pascualbravo.edu.co" value="' + esc(curUser.email) + '">' +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;">' +
+            '<div class="auth-field">' +
+              '<label>Programa académico</label>' +
+              '<select id="auth-program">' +
+                ['Ingeniería de Software', 'Tecnología en Desarrollo de Software', 'Ingeniería Eléctrica', 'Ingeniería Mecánica', 'Ingeniería Industrial', 'Diseño Gráfico'].map((p) => '<option value="' + p + '"' + (curUser.program === p ? ' selected' : '') + '>' + p + '</option>').join('') +
+              '</select>' +
+            '</div>' +
+            '<div class="auth-field">' +
+              '<label>Semestre</label>' +
+              '<select id="auth-sem">' +
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => '<option value="' + n + '"' + (String(curUser.semester) === String(n) ? ' selected' : '') + '>' + n + '.º sem</option>').join('') +
+              '</select>' +
+            '</div>' +
+          '</div>' +
+          '<p class="m-hint" style="margin:2px 0 0;">' + I('shield-check', 14) + 'Conectado con Registro Académico SIA y la Base de Datos Global en vivo.</p>' +
+        '</form>' +
+        '<div style="border-top:1px solid var(--c-border);margin-top:14px;padding-top:12px;">' +
+          '<small class="muted" style="display:block;margin-bottom:8px;font-weight:600;">Acceso rápido para la demostración (1 clic):</small>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+            '<button type="button" class="btn btn-secondary sm" data-quick-login="student">' + I('user', 13) + 'Juan (Estudiante)</button>' +
+            '<button type="button" class="btn btn-secondary sm" data-quick-login="tutor">' + I('award', 13) + 'Laura (Tutora Par)</button>' +
+            '<button type="button" class="btn btn-secondary sm" data-quick-login="samuel">' + I('sparkles', 13) + 'Samuel Montoya</button>' +
+            '<button type="button" class="btn btn-secondary sm" data-quick-login="martin">' + I('sparkles', 13) + 'Martín Sánchez</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<footer class="m-foot" style="justify-content:space-between;">' +
+        '<button class="btn btn-ghost" data-close type="button">Cancelar</button>' +
+        '<button class="btn btn-primary" data-auth-submit="1" type="button">' + I('check-circle', 16) + 'Ingresar y sincronizar perfil</button>' +
+      '</footer>';
+
+    showModal(html, 'auth');
+  }
+
+  function openCloudModal() {
+    const html = '' +
+      '<header class="m-head">' +
+        '<div><h3>Base de Datos Global en Tiempo Real</h3><p>Clúster Pub/Sub & Persistencia Híbrida · I.U. Pascual Bravo</p></div>' +
+        '<button class="icon-btn" data-close type="button" aria-label="Cerrar">' + I('x') + '</button>' +
+      '</header>' +
+      '<div class="m-body">' +
+        '<div class="summary">' +
+          sumRow('shield-check', 'Estado del servidor', 'En línea · Sincronización SSE en tiempo real activa') +
+          sumRow('users', 'Tutores en base de datos', D.tutors.length + ' tutores verificados') +
+          sumRow('book-open', 'Ofertas publicadas', S.offers.length + ' ofertas activas en el catálogo global') +
+          sumRow('calendar', 'Sesiones agendadas', S.bookings.length + ' reservas registradas') +
+          sumRow('sparkles', 'Eventos sincronizados', cloudEventsCount + ' transacciones en esta sesión') +
+        '</div>' +
+        '<p class="m-hint" style="margin-top:12px;">' + I('info', 14) + 'Cualquier compañero o docente que abra el enlace de GitHub Pages en su celular o computador verá en vivo las ofertas publicadas, reservas y calificaciones.</p>' +
+      '</div>' +
+      '<footer class="m-foot" style="justify-content:space-between;">' +
+        '<button class="btn btn-danger-ghost sm" data-cloud-reset="1" type="button">' + I('repeat', 14) + 'Reiniciar datos locales</button>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button class="btn btn-secondary" data-cloud-sync="1" type="button">' + I('repeat', 15) + 'Sincronizar ahora</button>' +
+          '<button class="btn btn-primary" data-close type="button">Listo</button>' +
+        '</div>' +
+      '</footer>';
+    showModal(html, 'auth');
+  }
+
+  /* =======================================================================
      VISTA 3 · PORTAL DEL TUTOR
      ======================================================================= */
   const BLOCKS = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'];
@@ -928,7 +1203,7 @@
     tf.avail.forEach((k) => { const p = k.split('-'); (avail[p[0]] = avail[p[0]] || []).push(p[1]); });
     Object.keys(avail).forEach((k) => avail[k].sort());
     return {
-      id: 'preview', tutorId: 't1', subject: tf.subject, topics: tf.topics.slice(), incentive: tf.incentive,
+      id: 'preview', tutorId: S.activeTutorId || 't1', subject: tf.subject, topics: tf.topics.slice(), incentive: tf.incentive,
       rate: tf.incentive === 'pago' ? tf.rate : 0,
       modality: tf.modality === 'ambas' ? ['presencial', 'virtual'] : [tf.modality],
       avail: avail, method: tf.method
@@ -936,12 +1211,12 @@
   }
 
   function renderTutor() {
-    const t = tutorById('t1');
+    const t = tutorById(S.activeTutorId || 't1');
     const pend = S.requests.filter((r) => r.status === 'pendiente').length;
     return '' +
       '<section class="view view-tutor">' +
         '<div class="tutor-hero">' +
-          '<div class="th-id">' + avatar(t, 64, 'ring') + '<div><span class="eyebrow mono">Hola, Laura</span><h1>Tu espacio como tutora par</h1><p>' + I('shield-check', 15, 'verified') + 'Perfil verificado · ' + esc(t.program) + ' · ' + t.semester + '.º semestre</p></div></div>' +
+          '<div class="th-id">' + avatar(t, 64, 'ring') + '<div><span class="eyebrow mono">Hola, ' + esc(first(t.name)) + '</span><h1>Tu espacio como tutor par</h1><p>' + I('shield-check', 15, 'verified') + 'Perfil verificado · ' + esc(t.program) + ' · ' + t.semester + '.º semestre</p></div></div>' +
           '<div class="th-stats">' +
             '<div><b class="mono">' + t.sessions + '</b><span>sesiones dadas</span></div>' +
             '<div><b class="mono">' + t.rating.toFixed(1) + I('star', 16, 'star fill') + '</b><span>calificación</span></div>' +
@@ -987,7 +1262,7 @@
   }
 
   function tutorFormHTML() {
-    const tf = S.tf, t = tutorById('t1');
+    const tf = S.tf, t = tutorById(S.activeTutorId || 't1');
     if (tf.published) {
       const o = offerById(tf.published), s = subjectById(o.subject);
       return '<div class="publish-success">' +
@@ -1071,10 +1346,11 @@
     o.isNew = true;
     S.offers.unshift(o);
     saveState();
+    pushCloudEvent('offer_created', { offer: o, tutor: tutorById(o.tutorId) });
     tf.published = o.id;
     refreshTutorForm(true);
     $('#tf-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    toast({ title: 'Oferta publicada en el catálogo', body: subjectById(o.subject).name + ' · ' + (o.incentive === 'pago' ? COP(o.rate) + '/h' : 'gratuita'), action: { label: 'Verla', fn: () => viewPublished() } });
+    toast({ title: 'Oferta publicada en la Base de Datos Global', body: subjectById(o.subject).name + ' · ' + (o.incentive === 'pago' ? COP(o.rate) + '/h' : 'gratuita'), action: { label: 'Verla', fn: () => viewPublished() } });
   }
   function viewPublished() {
     S.highlight = S.tf.published;
@@ -1293,6 +1569,115 @@
   function onModalClick(e) {
     const m = modal();
     if (e.target === m || e.target.closest('[data-close]')) return closeModal();
+
+    // Roles en modal de login
+    const roleBtn = e.target.closest('[data-auth-role]');
+    if (roleBtn) {
+      const r = roleBtn.dataset.authRole;
+      const inp = $('#auth-role');
+      if (inp) inp.value = r;
+      $$('[data-auth-role]', m).forEach((b) => b.classList.toggle('active', b === roleBtn));
+      return;
+    }
+
+    // Acceso rápido 1 clic en modal de login
+    const qBtn = e.target.closest('[data-quick-login]');
+    if (qBtn) {
+      const preset = qBtn.dataset.quickLogin;
+      const presets = {
+        student: { name: 'Juan Esteban Carrascal', email: 'juan.carrascal@pascualbravo.edu.co', program: 'Tecnología en Desarrollo de Software', sem: '1', role: 'student' },
+        tutor:   { name: 'Laura Restrepo Calle', email: 'laura.restrepo@pascualbravo.edu.co', program: 'Ingeniería de Software', sem: '8', role: 'tutor' },
+        samuel:  { name: 'Samuel Montoya Garzón', email: 'samuel.montoya@pascualbravo.edu.co', program: 'Ingeniería de Software', sem: '7', role: 'tutor' },
+        martin:  { name: 'Martín Sánchez Urrego', email: 'martin.sanchez@pascualbravo.edu.co', program: 'Ingeniería de Software', sem: '7', role: 'student' }
+      };
+      const p = presets[preset];
+      if (p) {
+        $('#auth-name').value = p.name;
+        $('#auth-email').value = p.email;
+        $('#auth-program').value = p.program;
+        $('#auth-sem').value = p.sem;
+        $('#auth-role').value = p.role;
+        $$('[data-auth-role]', m).forEach((b) => b.classList.toggle('active', b.dataset.authRole === p.role));
+      }
+      return;
+    }
+
+    // Enviar formulario de login
+    if (e.target.closest('[data-auth-submit]')) {
+      const name = ($('#auth-name') && $('#auth-name').value.trim()) || 'Estudiante Pascualino';
+      let email = ($('#auth-email') && $('#auth-email').value.trim()) || 'estudiante@pascualbravo.edu.co';
+      if (email.indexOf('@') < 0) email += '@pascualbravo.edu.co';
+      const program = ($('#auth-program') && $('#auth-program').value) || 'Ingeniería de Software';
+      const semester = Number(($('#auth-sem') && $('#auth-sem').value) || 5);
+      const role = ($('#auth-role') && $('#auth-role').value) || 'student';
+      const ini = initials(name);
+      const hue = (name.charCodeAt(0) * 37 + name.length * 19) % 360;
+
+      S.userSession = { name: name, email: email, program: program, semester: semester, role: role };
+
+      if (role === 'student') {
+        D.personas.student = { key: 'student', label: 'Estudiante', name: name, detail: program + ' · ' + semester + '.º sem', initials: ini, hue: hue };
+        saveState();
+        closeModal();
+        go('explorar');
+        toast({ type: 'success', title: '¡Bienvenido/a, ' + first(name) + '!', body: 'Sesión activa con ' + email });
+      } else if (role === 'tutor') {
+        const tid = name.toLowerCase().indexOf('laura') >= 0 ? 't1' : 't_user_' + norm(name).replace(/\s+/g, '_');
+        let tutorObj = D.tutors.find((t) => t.id === tid);
+        if (!tutorObj) {
+          tutorObj = {
+            id: tid,
+            name: name,
+            initials: ini,
+            hue: hue,
+            program: program,
+            semester: semester,
+            rating: 5.0,
+            reviews: 4,
+            sessions: 12,
+            attendance: 99,
+            response: 10,
+            place: 'Biblioteca Central · piso 2, mesa 4',
+            bio: 'Tutor par verificado de ' + program + ' (' + email + '). Enfocado en ejercicios prácticos y preparación de parciales.',
+            method: 'Resolvemos ejercicios tipo parcial paso a paso y validamos que domines la lógica.',
+            grades: { edd: 4.8, poo: 4.7, calculo: 4.6, logica: 4.9, matop: 4.7, fisica: 4.5, bd: 4.8, circuitos: 4.5 },
+            avail: { 1: ['14:00', '16:00'], 2: ['10:00', '14:00'], 4: ['14:00', '16:00'], 5: ['10:00'] },
+            reviewsList: [
+              { author: 'Compañero Pascualino', subject: 'logica', rating: 5, text: 'Excelente explicación y muy paciente.', when: 'reciente' }
+            ]
+          };
+          D.tutors.unshift(tutorObj);
+          pushCloudEvent('tutor_registered', { tutor: tutorObj });
+        }
+        S.activeTutorId = tid;
+        D.personas.tutor = { key: 'tutor', label: 'Tutor par', name: name, detail: 'Tutor verificado · ' + semester + '.º sem', initials: ini, hue: hue };
+        saveState();
+        closeModal();
+        go('tutor');
+        toast({ type: 'success', title: 'Portal de Tutor activo: ' + first(name), body: 'Puedes publicar ofertas con tu nombre en la Base de Datos Global.' });
+      } else {
+        D.personas.inst = { key: 'inst', label: 'Institución', name: name, detail: 'Bienestar Universitario · SIA', initials: ini, hue: 158 };
+        saveState();
+        closeModal();
+        go('institucion');
+        toast({ type: 'success', title: 'Panel Institucional activo', body: 'Autenticado como ' + name + ' (' + email + ')' });
+      }
+      return;
+    }
+
+    // Acciones del modal de Base de Datos Global
+    if (e.target.closest('[data-cloud-sync]')) {
+      closeModal();
+      syncCloudDB(true);
+      return;
+    }
+    if (e.target.closest('[data-cloud-reset]')) {
+      try { localStorage.removeItem('peerlearn_sim_data'); } catch (_) {}
+      closeModal();
+      location.reload();
+      return;
+    }
+
     const vBtn = e.target.closest('[data-room-verify]');
     if (vBtn) {
       const id = vBtn.dataset.roomVerify;
@@ -1301,6 +1686,7 @@
       b.attendance = true;
       b.reviewed = false;
       saveState();
+      pushCloudEvent('booking_completed', { bookingId: b.id });
       closeModal();
       render();
       toast({ type: 'success', title: '¡Asistencia confirmada con PIN!', body: 'La sesión se acreditó en SIA. Califica a tu tutor para finalizar.' });
@@ -1446,13 +1832,15 @@
     // Selector de roles en vivo (#persona)
     $('#persona').addEventListener('click', (e) => {
       e.stopPropagation();
+      if (e.target.closest('[data-open-login]')) {
+        const pd = $('#persona-dropdown');
+        if (pd) pd.classList.remove('open');
+        openLoginModal();
+        return;
+      }
       if (e.target.closest('[data-reset-demo]')) {
         try { localStorage.removeItem('peerlearn_sim_data'); } catch (_) {}
-        S.offers = D.offers.map((o) => Object.assign({}, o));
-        S.requests = D.requests.map((r) => Object.assign({}, r));
-        seed();
-        render();
-        toast({ type: 'info', title: 'Datos de la demo reiniciados', body: 'El catálogo y la agenda volvieron a su estado original para la exposición.' });
+        location.reload();
         return;
       }
       const opt = e.target.closest('[data-set-persona]');
@@ -1469,6 +1857,11 @@
       const pd = $('#persona-dropdown');
       if (pd) pd.classList.toggle('open');
     });
+
+    const loginBtn = $('#login-btn');
+    if (loginBtn) loginBtn.addEventListener('click', () => openLoginModal());
+    const cloudBtn = $('#cloud-status');
+    if (cloudBtn) cloudBtn.addEventListener('click', () => openCloudModal());
 
     // Botones de cambio de tema (sol / luna)
     document.addEventListener('click', (e) => {
@@ -1500,6 +1893,8 @@
 
     window.addEventListener('hashchange', route);
     route();
+    syncCloudDB(false);
+    listenCloudStream();
     // Refresca cuenta regresiva de la agenda cada minuto
     setInterval(() => { if (S.view === 'agenda' && document.body.classList.contains('mode-app') && !modal().classList.contains('open')) { const c = $('.countdown'); const up = S.bookings.filter((b) => (b.status === 'confirmada' || b.status === 'pendiente') && b.start > new Date()).sort((a, b) => a.start - b.start)[0]; if (c && up) c.textContent = fmtRel(up.start); } }, 60000);
   }
