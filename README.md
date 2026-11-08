@@ -23,3 +23,4 @@ Plataforma de acompañamiento académico P2P para asignaturas críticas de prime
    - **`N`**: Abrir el **Panel de Notas del Orador**.
    - **`F`**: Pantalla completa.
    - **`←` / `→` / `Espacio`**: Cambiar de diapositiva.
+
