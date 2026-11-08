@@ -283,7 +283,10 @@
         '<button type="button" class="persona-opt ' + (key === 'student' ? 'active' : '') + '" data-set-persona="student">' + avatar(D.personas.student, 28) + '<div><b>Juan Carrascal</b><small style="display:block;font-size:10.5px;color:var(--c-text-muted);">Estudiante (1.er semestre)</small></div></button>' +
         '<button type="button" class="persona-opt ' + (key === 'tutor' ? 'active' : '') + '" data-set-persona="tutor">' + avatar(D.personas.tutor, 28) + '<div><b>Laura Restrepo</b><small style="display:block;font-size:10.5px;color:var(--c-text-muted);">Tutora par (8.º semestre)</small></div></button>' +
         '<button type="button" class="persona-opt ' + (key === 'inst' ? 'active' : '') + '" data-set-persona="inst">' + avatar(D.personas.inst, 28) + '<div><b>Bienestar Universitario</b><small style="display:block;font-size:10.5px;color:var(--c-text-muted);">Dirección Académica B2B</small></div></button>' +
+        '<div style="border-top:1px solid var(--c-border);margin:4px 0;"></div>' +
+        '<button type="button" class="persona-opt" data-reset-demo="1" style="font-size:11.5px;color:var(--c-gold-primary);">' + I('repeat', 15) + '<span>Reiniciar datos de la demo</span></button>' +
       '</div>';
+    PL.hydrateIcons($('#persona-dropdown'));
   }
 
   function updateBadges() {
@@ -1443,6 +1446,15 @@
     // Selector de roles en vivo (#persona)
     $('#persona').addEventListener('click', (e) => {
       e.stopPropagation();
+      if (e.target.closest('[data-reset-demo]')) {
+        try { localStorage.removeItem('peerlearn_sim_data'); } catch (_) {}
+        S.offers = D.offers.map((o) => Object.assign({}, o));
+        S.requests = D.requests.map((r) => Object.assign({}, r));
+        seed();
+        render();
+        toast({ type: 'info', title: 'Datos de la demo reiniciados', body: 'El catálogo y la agenda volvieron a su estado original para la exposición.' });
+        return;
+      }
       const opt = e.target.closest('[data-set-persona]');
       if (opt) {
         const pk = opt.dataset.setPersona;
