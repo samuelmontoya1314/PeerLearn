@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PeerLearn — Tutorías entre pares · I.U. Pascual Bravo</title>
+  <meta name="description"
+    content="PeerLearn: plataforma de tutorías académicas P2P para asignaturas críticas. Pitch y MVP funcional — Seminario de Emprendimiento e Innovación, I.U. Pascual Bravo.">
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%230B1033'/%3E%3Cpath d='M11.5 27.5C11.5 18 19 12.5 28.5 12.5' stroke='%232F6BFF' stroke-width='3.6' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='11.5' cy='27.5' r='4.6' fill='%23F5A524'/%3E%3Ccircle cx='28.5' cy='12.5' r='4.6' fill='%23fff'/%3E%3C/svg%3E">
+
+  <!-- Tipografías de marca (si no hay internet, el sistema usa fuentes de respaldo) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/brand.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <link rel="stylesheet" href="assets/css/pitch.css">
+</head>
+
+<body class="mode-pitch theme-dark">
+
+  <!-- =====================================================================
+       MODO APP — MVP FUNCIONAL
+       ===================================================================== -->
+  <div class="app" id="app" aria-label="PeerLearn MVP">
+    <aside class="sidebar">
+      <a class="brand" href="#app/explorar" data-nav="explorar">
+        <span class="brand-mark" data-logo data-size="36"></span>
+        <span class="brand-word">Peer<b>Learn</b></span>
+      </a>
+
+      <div class="tenant">
+        <span class="tenant-badge">PB</span>
+        <div><small>Institución aliada</small><strong>I.U. Pascual Bravo</strong></div>
+      </div>
+
+      <nav class="nav">
+        <p class="nav-label">Estudiante</p>
+        <a class="nav-item" href="#app/explorar" data-nav="explorar"><i data-icon="search"></i><span>Explorar
+            tutores</span></a>
+        <a class="nav-item" href="#app/agenda" data-nav="agenda"><i data-icon="calendar"></i><span>Mi agenda</span><em
+            class="nav-badge" id="badge-agenda"></em></a>
+
+        <p class="nav-label">Tutor par</p>
+        <a class="nav-item" href="#app/tutor" data-nav="tutor"><i data-icon="graduation-cap"></i><span>Portal del
+            tutor</span><em class="nav-badge gold" id="badge-tutor"></em></a>
+
+        <p class="nav-label">Institución</p>
+        <a class="nav-item" href="#app/institucion" data-nav="institucion"><i data-icon="building"></i><span>Panel
+            institucional</span></a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <button class="pitch-cta" data-mode="pitch" type="button">
+          <i data-icon="presentation"></i>
+          <span><strong>Modo presentación</strong><small>Volver al pitch · tecla P</small></span>
+        </button>
+        <p class="build-tag mono">MVP v1.0 · Piloto 2026-2</p>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="crumbs">
+          <span class="role-pill" id="crumb-role">Vista estudiante</span>
+          <h2 id="crumb-title">Explorar tutores</h2>
+        </div>
+        <div class="topbar-actions">
+          <div class="demo-pill"><span class="pulse"></span>Demo interactiva · datos simulados</div>
+          <button class="icon-btn theme-toggle-btn" id="theme-toggle" type="button" aria-label="Cambiar tema"
+            title="Alternar modo oscuro/claro (tecla T)">
+            <i data-icon="sun" class="icon-sun"></i>
+            <i data-icon="moon" class="icon-moon"></i>
+          </button>
+          <div class="bell-wrap">
+            <button class="icon-btn" id="bell" type="button" aria-label="Notificaciones"><i data-icon="bell"></i><span
+                class="dot" id="bell-dot"></span></button>
+            <div class="notif-pop" id="notif-pop" role="dialog" aria-label="Notificaciones"></div>
+          </div>
+          <div class="persona" id="persona"></div>
+        </div>
+      </header>
+
+      <main class="view-host" id="view-host" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <!-- Capas superpuestas -->
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <aside class="drawer" id="drawer" aria-label="Perfil del tutor"></aside>
+  <div class="modal-backdrop" id="modal" role="dialog" aria-modal="true"></div>
+  <div class="toast-stack" id="toasts" aria-live="polite"></div>
+
+  <!-- =====================================================================
+       MODO PITCH — PRESENTACIÓN A STAKEHOLDERS (lienzo 1600 × 900)
+       ===================================================================== -->
+  <div class="pitch" id="pitch" aria-label="Presentación PeerLearn">
+    <div class="deck-viewport" id="deck-viewport">
+      <div class="deck" id="deck">
+
+        <!-- ============ 1 · PORTADA ============ -->
+        <section class="slide slide-cover dark" data-title="Portada">
+          <div class="cover-glow"></div>
+          <div class="cover-grid">
+            <div class="cover-copy">
+              <div class="lockup"><span data-logo data-size="64"></span><span
+                  class="lockup-word">Peer<b>Learn</b></span></div>
+              <h1 class="cover-title">Conocimiento entre pares.<br><span class="grad-gold">Permanencia con
+                  propósito.</span></h1>
+              <p class="cover-sub">Plataforma de tutorías académicas P2P que conecta a estudiantes de primeros semestres
+                con tutores pares verificados en las asignaturas críticas.</p>
+              <div class="cover-meta">
+                <span><i data-icon="graduation-cap"></i>Seminario de Emprendimiento e Innovación</span>
+                <span><i data-icon="building"></i>I.U. Pascual Bravo · Medellín</span>
+                <span><i data-icon="calendar"></i>Semestre 2026-2</span>
+              </div>
+            </div>
+
+            <div class="cover-visual" aria-hidden="true">
+              <div class="fx-card fx-tutor">
+                <div class="fx-row">
+                  <span class="avatar" style="--h:221">LR</span>
+                  <div><strong>Laura Restrepo</strong><small>Ing. de Software · 8.º semestre</small></div>
+                  <span class="tag tag-pay mono">$22.000<small>/h</small></span>
+                </div>
+                <div class="grade-badge"><i data-icon="shield-check"></i><span>Aprobó <b>Estructuras de
+                      Datos</b></span><span class="grade mono">4.8</span></div>
+                <div class="topics"><span class="chip chip-match">Árboles binarios</span><span
+                    class="chip">Recursión</span><span class="chip">Pilas y colas</span></div>
+                <div class="fx-stats"><span><i data-icon="star" class="fill star"></i><b>4.9</b> (38)</span><span><i
+                      data-icon="check-circle"></i>98% asistencia</span></div>
+                <div class="fx-btn">Agendar tutoría</div>
+              </div>
+              <div class="fx-card fx-toast">
+                <span class="fx-check"><i data-icon="check"></i></span>
+                <div><strong>Tutoría confirmada</strong><small>Mañana · 14:00 · Biblioteca, cubículo 4</small></div>
+              </div>
+              <div class="fx-card fx-metric">
+                <small>Horas de bienestar certificadas</small>
+                <strong class="mono">18 h <em>/ 40 h</em></strong>
+                <div class="bar"><span style="width:45%"></span></div>
+              </div>
+              <div class="fx-orbit"></div>
+            </div>
+          </div>
+          <footer class="cover-team">
+            <span class="mono team-label">Grupo 3</span>
+            <ul>
+              <li>Samuel Montoya Garzón</li>
+              <li>Martín Sánchez Urrego</li>
+              <li>Mariana Marín Quintero</li>
+              <li>Juan Sebastián Jiménez Sepúlveda</li>
+            </ul>
+            <span class="mono teacher">Docente · Ricardo José Ruiz Gaviria</span>
+          </footer>
+          <aside class="speaker-notes" data-presenter="Martín Sánchez">
+            <p>Buenos días. Somos el Grupo 3 y venimos a presentar <b>PeerLearn</b>.</p>
+            <p>Arrancar con una pregunta al público: <i>“¿Cuántos aquí perdieron o casi pierden una materia en primer
+                semestre porque no tenían a quién preguntarle a tiempo?”</i> (pausa, dejar que levanten la mano).</p>
+            <p>“PeerLearn existe para que eso deje de pasar. En los próximos minutos les mostramos el problema, la
+              evidencia que recogimos y un producto funcional.”</p>
+          </aside>
+        </section>
+
+        <!-- ============ 2 · EL PROBLEMA ============ -->
+        <section class="slide" data-title="El problema">
+          <header class="s-head">
+            <span class="eyebrow mono">01 · El problema</span>
+            <h2>La deserción universitaria se decide en los primeros semestres</h2>
+          </header>
+          <div class="s2-grid">
+            <div class="big-stat">
+              <div class="big-number">75<span>%</span></div>
+              <p>del abandono en la educación superior en Colombia ocurre durante los <b>primeros cuatro semestres</b>,
+                concentrado en el primer año por dificultades de adaptación y reprobación en ciencias básicas.</p>
+              <span class="source mono"><i data-icon="file-text"></i>Fuente: SPADIES — Ministerio de Educación
+                Nacional</span>
+            </div>
+            <div class="tree">
+              <div class="tree-band effects">
+                <span class="tree-label mono">Efectos</span>
+                <div class="tree-items">
+                  <span>Reprobación de asignaturas críticas</span>
+                  <span>Deserción temprana</span>
+                  <span>Desmotivación y pérdida de confianza académica</span>
+                </div>
+              </div>
+              <div class="tree-core">
+                <span class="tree-label mono">Problema central</span>
+                <strong>Alta reprobación y deserción en asignaturas críticas por falta de acompañamiento personalizado y
+                  flexible</strong>
+              </div>
+              <div class="tree-band causes">
+                <span class="tree-label mono">Causas</span>
+                <div class="tree-items">
+                  <span>Asesorías oficiales con pocos cupos y horarios rígidos</span>
+                  <span>Atención mayormente presencial</span>
+                  <span>Docentes disponibles que no siempre dominan el tema puntual</span>
+                </div>
+              </div>
+              <div class="tree-impact">
+                <i data-icon="building"></i>
+                <p>Para la institución, cada estudiante que deserta afecta <b>indicadores de acreditación</b> e
+                  <b>ingresos por matrícula</b>.</p>
+              </div>
+            </div>
+          </div>
+          <footer class="s-foot"><span class="s-foot-brand"><span data-logo
+                data-size="20"></span>PeerLearn</span><span>Seminario de Emprendimiento e Innovación · I.U. Pascual
+              Bravo</span><span class="s-num mono"></span></footer>
+          <aside class="speaker-notes" data-presenter="Martín Sánchez">
+            <p>El dato oficial de SPADIES: <b>3 de cada 4 estudiantes que abandonan lo hacen en los primeros 4
+                semestres</b>. Justo cuando se ven Lógica de Programación, Cálculo y Matemáticas.</p>
+            <p>Recorrer el árbol de abajo hacia arriba: causas → problema central → efectos.</p>
+            <p>Cerrar con el ángulo institucional: “Esto no es solo un problema del estudiante; también impacta la
+              acreditación y la sostenibilidad de la universidad.”</p>
+          </aside>
+        </section>
+
+        <!-- ============ 3 · ALTERNATIVAS ACTUALES ============ -->
+        <section class="slide" data-title="Por qué fallan las alternativas">
+          <header class="s-head">
+            <span class="eyebrow mono">02 · El contexto</span>
+            <h2>Hoy, la oferta y la demanda de ayuda académica no se encuentran</h2>
+          </header>
+          <div class="s3-grid">
+            <article class="alt-card">
+              <div class="alt-icon"><i data-icon="building" data-size="26"></i></div>
+              <h3>Tutorías institucionales</h3>
+              <p class="alt-sub">Valiosas, pero limitadas por presupuesto</p>
+              <ul class="x-list">
+                <li><i data-icon="x"></i>Horarios fijos que chocan con las clases</li>
+                <li><i data-icon="x"></i>Cupos que se agotan en semana de parciales</li>
+                <li><i data-icon="x"></i>Atención mayormente presencial y grupal</li>
+                <li><i data-icon="x"></i>No siempre hay quien domine el tema puntual</li>
+              </ul>
+            </article>
+            <div class="vs">VS</div>
+            <article class="alt-card">
+              <div class="alt-icon gold"><i data-icon="message" data-size="26"></i></div>
+              <h3>Canales informales</h3>
+              <p class="alt-sub">WhatsApp, voz a voz, YouTube</p>
+              <ul class="x-list">
+                <li><i data-icon="x"></i>Pena de preguntar en grupos masivos</li>
+                <li><i data-icon="x"></i>Sin garantía: se paga y no siempre se aprende</li>
+                <li><i data-icon="x"></i>Cuadrar horarios y pagos por chat es tedioso</li>
+                <li><i data-icon="x"></i>Cancelaciones e inasistencias de último minuto</li>
+              </ul>
+            </article>
+          </div>
+          <div class="s3-gap">
+            <span class="gap-pill mono">La brecha</span>
+            <p>Hay <b>estudiantes avanzados dispuestos a enseñar</b> y <b>estudiantes de primeros semestres que
+                necesitan ayuda</b>, pero no existe un canal ágil, transparente y confiable que los conecte dentro del
+              campus.</p>
+          </div>
+          <footer class="s-foot"><span class="s-foot-brand"><span data-logo
+                data-size="20"></span>PeerLearn</span><span>Seminario de Emprendimiento e Innovación · I.U. Pascual
+              Bravo</span><span class="s-num mono"></span></footer>
+          <aside class="speaker-notes" data-presenter="Samuel Montoya">
+            <p>Dejar claro que <b>no criticamos</b> las tutorías institucionales: tienen límites de escala por
+              presupuesto, horarios y cupos.</p>
+            <p>Del otro lado está el mercado informal, que es ineficiente e inseguro.</p>
+            <p>Remate: “El problema no es que falte conocimiento en el campus. Es que no hay un puente entre quien sabe
+              y quien necesita.”</p>
+          </aside>
+        </section>
+
+        <!-- ============ 4 · VOZ DEL USUARIO ============ -->
+        <section class="slide" data-title="Lo que escuchamos">
+          <header class="s-head">
+            <span class="eyebrow mono">03 · Validación con usuarios</span>
+            <h2>Lo que escuchamos en 5 entrevistas semiestructuradas</h2>
+          </header>
+          <div class="quotes">
+            <figure class="quote">
+              <span class="q-role mono">Consultante · 1.er sem</span>
+              <blockquote>“Los horarios que dispone la universidad se me cruzan exactamente con la clase de Cálculo
+                Diferencial.”</blockquote>
+              <figcaption><span class="avatar sm" style="--h:200">MG</span><span><b>Mateo G.</b><small>Lógica de
+                    Programación</small></span></figcaption>
+            </figure>
+            <figure class="quote">
+              <span class="q-role mono">Consultante · 3.er sem</span>
+              <blockquote>“Le pagué a un conocido, pero no explicaba bien y sentí que perdí el dinero.”</blockquote>
+              <figcaption><span class="avatar sm" style="--h:330">VR</span><span><b>Valentina R.</b><small>Estructuras
+                    de Datos</small></span></figcaption>
+            </figure>
+            <figure class="quote">
+              <span class="q-role mono">Consultante · 2.º sem</span>
+              <blockquote>“Dependemos de la suerte para hacer coincidir nuestros huecos.”</blockquote>
+              <figcaption><span class="avatar sm" style="--h:160">AM</span><span><b>Andrés M.</b><small>Matemáticas
+                    Operativas</small></span></figcaption>
+            </figure>
+            <figure class="quote tutor">
+              <span class="q-role mono">Tutora · 7.º sem</span>
+              <blockquote>“Cuadrar pagos y horarios por chat individual resulta muy tedioso.”</blockquote>
+              <figcaption><span class="avatar sm" style="--h:35">DC</span><span><b>Daniela C.</b><small>Arquitectura de
+                    Software</small></span></figcaption>
+            </figure>
+            <figure class="quote tutor">
+              <span class="q-role mono">Tutor · 8.º sem</span>
+              <blockquote>“La persona cancela a última hora o no llega a la cita en la biblioteca.”</blockquote>
+              <figcaption><span class="avatar sm" style="--h:265">SG</span><span><b>Stiven G.</b><small>Matemáticas
+                    Especiales</small></span></figcaption>
+            </figure>
+          </div>
+          <div class="hypotheses">
+            <div class="hyp"><span class="ok"><i data-icon="check"></i>Confirmada</span>
+              <p><b>H1 ·</b> Los horarios institucionales no coinciden con la disponibilidad del estudiante.</p>
+            </div>
+            <div class="hyp"><span class="ok"><i data-icon="check"></i>Confirmada</span>
+              <p><b>H2 ·</b> Eligen tutor por dominio del tema, nota de aprobación, reseñas y horario.</p>
+            </div>
+            <div class="hyp"><span class="ok"><i data-icon="check"></i>Confirmada</span>
+              <p><b>H3 ·</b> Los estudiantes avanzados enseñarían a cambio de incentivos <i>distintos</i> (dinero,
+                horas, créditos).</p>
+            </div>
+          </div>
+          <footer class="s-foot"><span class="s-foot-brand"><span data-logo
+                data-size="20"></span>PeerLearn</span><span>Seminario de Emprendimiento e Innovación · I.U. Pascual
+              Bravo</span><span class="s-num mono"></span></footer>
+          <aside class="speaker-notes" data-presenter="Mariana Marín">
+            <p>Entrevistamos a 3 estudiantes consultantes (1.º a 3.er semestre) y 2 tutores avanzados de Pascual Bravo,
+              en campus y por Google Meet.</p>
+            <p>Leer en voz alta la cita de Valentina: es la que más conecta emocionalmente.</p>
+            <p>Hallazgo clave: <b>las tres hipótesis se confirmaron</b>, y la H3 nos dejó un aprendizaje de diseño: los
+              incentivos deben ser <b>configurables</b>, porque cada tutor valora algo distinto.</p>
+          </aside>
+        </section>
+
+        <!-- ============ 5 · DECISIÓN RACIONAL ============ -->
+        <section class="slide" data-title="Por qué PeerLearn">
+          <header class="s-head">
+            <span class="eyebrow mono">04 · Decisión basada en criterios</span>
+            <h2>Elegimos el problema y la solución con método, no con intuición</h2>
+          </header>
+          <div class="s5-grid">
+            <article class="panel">
+              <div class="panel-head">
+                <h3>Radar de oportunidades</h3>
+                <p>6 criterios, escala 1 a 5</p>
+              </div>
+              <div class="radar-wrap">
+                <div class="radar" data-radar></div>
+                <div class="radar-legend">
+                  <div class="rl a"><span></span>
+                    <div><b>Problema 1 · 25/30</b><small>Inexistencia de canales de tutoría en la universidad</small>
+                    </div>
+                  </div>
+                  <div class="rl b"><span></span>
+                    <div><b>Problema 2 · 16/30</b><small>Desorganización al asignar practicantes a proyectos</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <article class="panel">
+              <div class="panel-head">
+                <h3>Matriz de evaluación de soluciones</h3>
+                <p>Deseabilidad · Impacto · Factibilidad · Diferenciación · Alineación</p>
+              </div>
+              <div class="matrix" data-matrix></div>
+              <p class="matrix-note"><i data-icon="sparkles"></i>PeerLearn es la única alternativa que resuelve a la vez
+                <b>horario</b>, <b>confianza</b> e <b>incentivo</b>.</p>
+            </article>
+          </div>
+          <footer class="s-foot"><span class="s-foot-brand"><span data-logo
+                data-size="20"></span>PeerLearn</span><span>Seminario de Emprendimiento e Innovación · I.U. Pascual
+              Bravo</span><span class="s-num mono"></span></footer>
+          <aside class="speaker-notes" data-presenter="Samuel Montoya">
+            <p>Primero comparamos dos problemas con el Radar: el de tutorías ganó 25 a 16, sobre todo por <b>potencial
+                de innovación</b> y <b>viabilidad</b>.</p>
+            <p>Después evaluamos 5 soluciones. PeerLearn sacó 24 de 25. El padrino académico (18) es valioso, pero
+              depende de mucha coordinación institucional y no resuelve dudas puntuales.</p>
+            <p>Mensaje: “No llegamos a PeerLearn por gusto: llegamos por descarte con criterios.”</p>
+          </aside>
+        </section>
+
+        <!-- ============ 6 · LA SOLUCIÓN ============ -->
+        <section class="slide slide-solution" data-title="La solución">
+          <header class="s-head">
+            <span class="eyebrow mono">05 · La solución</span>
+            <h2>PeerLearn: el puente entre quien sabe y quien necesita</h2>
+          </header>
+          <blockquote class="vp">
+            Para estudiantes de primeros semestres que no encuentran tutorías en horarios compatibles ni saben en quién
+            confiar, PeerLearn los conecta con <b>tutores pares verificados</b> y les permite agendar en el horario que
+            <b>realmente tienen libre</b>.
+          </blockquote>
+          <div class="pillars">
+            <article class="pillar">
+              <span class="p-num mono">01</span>
+              <div class="p-icon blue"><i data-icon="calendar" data-size="24"></i></div>
+              <h3>Agendamiento flexible</h3>
+              <p>Reserva directa sobre la disponibilidad real del tutor, presencial en campus o virtual.</p>
+              <span class="p-link mono">Responde al Hallazgo 1 · horarios rígidos</span>
+            </article>
+            <article class="pillar">
+              <span class="p-num mono">02</span>
+              <div class="p-icon emerald"><i data-icon="shield-check" data-size="24"></i></div>
+              <h3>Confianza verificable</h3>
+              <p>Nota de aprobación validada (mín. 4.0), temario que domina y reseñas de sesiones completadas.</p>
+              <span class="p-link mono">Responde al Hallazgo 2 · confianza</span>
+            </article>
+            <article class="pillar">
+              <span class="p-num mono">03</span>
+              <div class="p-icon gold"><i data-icon="award" data-size="24"></i></div>
+              <h3>Incentivos configurables</h3>
+              <p>Cada tutor elige: remuneración, horas de bienestar o certificación pedagógica.</p>
+              <span class="p-link mono">Responde al Hallazgo 3 · motivación</span>
+            </article>
+          </div>
+          <button class="demo-cta" data-mode="app" type="button">
+            <span class="demo-play"><i data-icon="play" class="fill"></i></span>
+            <span><strong>Ver demo en vivo</strong><small>MVP funcional · 4 vistas · tecla D</small></span>
+            <i data-icon="arrow-right"></i>
+          </button>
+          <footer class="s-foot"><span class="s-foot-brand"><span data-logo
+                data-size="20"></span>PeerLearn</span><span>Seminario de Emprendimiento e Innovación · I.U. Pascual
+              Bravo</span><span class="s-num mono"></span></footer>
+          <aside class="speaker-notes" data-presenter="Juan Sebastián Jiménez">
+            <p>Leer la propuesta de valor con calma. Luego conectar cada pilar con un hallazgo de las entrevistas.</p>
+            <p><b>Guion de la demo (≈3 min):</b></p>
+            <p>1) <b>Explorar:</b> buscar “árboles binarios”, filtrar “Gratuitas”, abrir el perfil de un tutor y mostrar
+              la nota verificada.<br>
+              2) <b>Agendar</b> en 3 pasos → ver la confirmación del tutor llegar sola.<br>
+              3) <b>Mi agenda:</b> confirmar asistencia y calificar una sesión pasada.<br>
+              4) <b>Portal del tutor:</b> publicar una oferta con incentivo “Horas de bienestar” → aparece en el
+              catálogo.<br>
+              5) <b>Panel institucional:</b> picos en semana de parciales y temas con más consultas.</p>
+            <p>Volver al pitch con la tecla <b>P</b>.</p>
+          </aside>
+        </section>
+
+        <!-- ============ 7 · MODELO DE NEGOCIO ============ -->
+        <section class="slide" data-title="Modelo de negocio">
+          <header class="s-head">
+            <span class="eyebrow mono">06 · Sostenibilidad</span>
+            <h2>Un modelo de tres capas que se renueva cada semestre</h2>
+          </header>
+          <div class="s7-grid">
+            <div class="layers">
+              <article class="layer l1">
+                <div class="layer-tag mono">Capa 1 · Fuente principal</div>
+                <h3><i data-icon="building"></i>Licencia institucional anual</h3>
+                <p>La universidad paga por administrar las tutorías como estrategia de retención y por consultar
+                  reportes de participación, sesiones y satisfacción.</p>
+              </article>
+              <article class="layer l2">
+                <div class="layer-tag mono">Capa 2 · Transaccional</div>
+                <h3><i data-icon="coins"></i>Comisión por tutoría remunerada</h3>
+                <p>Solo sobre sesiones pagas <b>completadas</b>. <span class="hl-emerald">0% de comisión en tutorías de
+                    servicio social.</span></p>
+              </article>
+              <article class="layer l3">
+                <div class="layer-tag mono">Capa 3 · Freemium</div>
+                <h3><i data-icon="sparkles"></i>Funciones premium opcionales</h3>
+                <p>Búsqueda, perfiles y agendamiento básico <b>gratis</b>. Pago opcional por estadísticas de progreso y
+                  gestión avanzada de disponibilidad.</p>
+              </article>
+            </div>
+            <div class="cycle">
+              <div class="cycle-ring">
+                <div class="cycle-center"><span data-logo data-size="54"></span><strong>Ciclo
+                    semestral</strong><small>Siempre hay estudiantes nuevos con dificultades y estudiantes avanzados
+                    dispuestos a enseñar con un incentivo.</small></div>
+                <div class="cycle-node n1"><i data-icon="user"></i><b>Estudiantes</b><small>Reservan gratis</small>
+                </div>
+                <div class="cycle-node n2"><i data-icon="graduation-cap"></i><b>Tutores pares</b><small>Dinero · horas ·
+                    créditos</small></div>
+                <div class="cycle-node n3"><i data-icon="building"></i><b>Universidad</b><small>Licencia +
+                    reportes</small></div>
+                <div class="cycle-node n4"><i data-icon="heart"></i><b>Bienestar</b><small>Certifica horas
+                    sociales</small></div>
+              </div>
+              <p class="tbd"><i data-icon="info"></i>Precios y porcentaje de comisión: <b>supuestos por validar en el
+                  piloto</b>.</p>
+            </div>
+          </div>
+          <footer class="s-foot"><span class="s-foot-brand"><span data-logo
+                data-size="20"></span>PeerLearn</span><span>Seminario de Emprendimiento e Innovación · I.U. Pascual
+              Bravo</span><span class="s-num mono"></span></footer>
+          <aside class="speaker-notes" data-presenter="Samuel Montoya">
+            <p>Somos un modelo <b>B2B2C</b>: el pagador principal es la universidad, porque es quien más gana cuando
+              baja la deserción.</p>
+            <p>La comisión solo aplica a tutorías pagas completadas; si el tutor enseña por horas sociales, PeerLearn no
+              cobra nada. Eso protege el propósito social.</p>
+            <p>Sostenibilidad: el ciclo se repite solo cada semestre. Ser honestos: precios y comisión todavía son
+              supuestos.</p>
+          </aside>
+        </section>
+
+        <!-- ============ 8 · CANVAS AUDITADO ============ -->
+        <section class="slide" data-title="Canvas auditado">
+          <header class="s-head row">
+            <div>
+              <span class="eyebrow mono">07 · Business Model Canvas</span>
+              <h2>Canvas auditado: sabemos qué está validado y qué no</h2>
+            </div>
+            <div class="sem-legend">
+              <span><i class="sem g"></i>Sustentado con evidencia</span>
+              <span><i class="sem y"></i>Parcial · por comprobar</span>
+              <span><i class="sem r"></i>Supuesto sin validar</span>
+            </div>
+          </header>
+          <div class="bmc">
+            <div class="bmc-cell kp">
+              <h4><i class="sem y"></i>Socios clave</h4>
+              <p>Dirección académica, Bienestar Universitario, docentes y monitores, proveedores de pagos.</p>
+              <small>Participación institucional aún no confirmada</small>
+            </div>
+            <div class="bmc-cell ka">
+              <h4><i class="sem y"></i>Actividades clave</h4>
+              <p>Desarrollar la plataforma, verificar tutores, gestionar reservas y cancelaciones.</p><small>Protocolos
+                por probar</small>
+            </div>
+            <div class="bmc-cell kr">
+              <h4><i class="sem y"></i>Recursos clave</h4>
+              <p>Equipo de desarrollo y diseño, base de datos, red de tutores por tema.</p><small>Disponibilidad
+                efectiva por confirmar</small>
+            </div>
+            <div class="bmc-cell vp">
+              <h4><i class="sem g"></i>Propuesta de valor</h4>
+              <p>Búsqueda por tema, perfiles con nota validada, reseñas y reservas según disponibilidad compatible.</p>
+              <small>Correspondencia con necesidades sustentada en 5 entrevistas</small>
+            </div>
+            <div class="bmc-cell cr">
+              <h4><i class="sem y"></i>Relaciones</h4>
+              <p>Recordatorios, política de cancelación visible, reseñas y repetir tutor.</p><small>Efectividad por
+                medir</small>
+            </div>
+            <div class="bmc-cell ch">
+              <h4><i class="sem y"></i>Canales</h4>
+              <p>Web adaptable a celular; difusión en clases, carteleras y docentes.</p><small>Conversión por canal por
+                medir</small>
+            </div>
+            <div class="bmc-cell cs">
+              <h4><i class="sem g"></i>Segmentos</h4>
+              <p>Consultantes de primeros semestres, tutores avanzados y la universidad como cliente.</p><small>Perfiles
+                sustentados · universidad como pagador por validar</small>
+            </div>
+            <div class="bmc-cell co">
+              <h4><i class="sem r"></i>Estructura de costos</h4>
+              <p>Desarrollo inicial, infraestructura, soporte, validación de tutores y difusión.</p><small>Faltan
+                cotizaciones y presupuesto con escenarios</small>
+            </div>
+            <div class="bmc-cell rs">
+              <h4><i class="sem r"></i>Fuentes de ingresos</h4>
+              <p>Licencia institucional anual, comisión por tutoría remunerada, premium opcional.</p><small>Sin
+                validación comercial aún</small>
+            </div>
+          </div>
+          <footer class="s-foot"><span class="s-foot-brand"><span data-logo
+                data-size="20"></span>PeerLearn</span><span>Seminario de Emprendimiento e Innovación · I.U. Pascual
+              Bravo</span><span class="s-num mono"></span></footer>
+          <aside class="speaker-notes" data-presenter="Mariana Marín">
+            <p>Esta es nuestra diapositiva de <b>honestidad</b>. Auditamos cada bloque del canvas con un semáforo.</p>
+            <p>Verde: lo que las entrevistas respaldan (necesidad y propuesta de valor). Amarillo: lo que tiene
+              indicios. Rojo: costos e ingresos, que dependen de cotizaciones y de una conversación con la universidad.
+            </p>
+            <p>“Por eso no les pedimos que compren hoy: les pedimos un piloto para convertir el rojo en verde.”</p>
+          </aside>
+        </section>
+
+        <!-- ============ 9 · ROADMAP & KPIs ============ -->
+        <section class="slide" data-title="Hoja de ruta">
+          <header class="s-head">
+            <span class="eyebrow mono">08 · Hoja de ruta</span>
+            <h2>Del prototipo al piloto: medir antes de escalar</h2>
+          </header>
+          <div class="roadmap">
+            <div class="rm-line"><span style="width:43%"></span></div>
+            <article class="rm-step done">
+              <span class="rm-dot"><i data-icon="check"></i></span>
+              <span class="rm-tag mono">Completado</span>
+              <h4>Fase 0 · Descubrimiento</h4>
+              <p>Radar de problemas, 5 entrevistas, matriz de soluciones y canvas auditado.</p>
+            </article>
+            <article class="rm-step current">
+              <span class="rm-dot"><i data-icon="zap"></i></span>
+              <span class="rm-tag mono">Hoy</span>
+              <h4>Fase 1 · Prototipo funcional</h4>
+              <p>MVP con búsqueda, agendamiento, reputación, portal del tutor y panel institucional.</p>
+            </article>
+            <article class="rm-step">
+              <span class="rm-dot">3</span>
+              <span class="rm-tag mono">Próximo semestre</span>
+              <h4>Fase 2 · Piloto controlado</h4>
+              <p>Una asignatura crítica (p. ej. Lógica de Programación) con aval de Bienestar.</p>
+            </article>
+            <article class="rm-step">
+              <span class="rm-dot">4</span>
+              <span class="rm-tag mono">Si el piloto funciona</span>
+              <h4>Fase 3 · Escalamiento</h4>
+              <p>Más asignaturas críticas y propuesta formal de licencia institucional.</p>
+            </article>
+          </div>
+          <div class="kpis">
+            <div class="kpi"><i data-icon="trending-up"></i><b>% de reducción de reprobación</b><small>En la asignatura
+                piloto vs. semestre anterior</small></div>
+            <div class="kpi"><i data-icon="check-circle"></i><b>Tutorías completadas</b><small>Sesiones realizadas /
+                sesiones reservadas</small></div>
+            <div class="kpi"><i data-icon="clock"></i><b>Tasa de asistencia</b><small>Ausencias y cancelaciones
+                tardías</small></div>
+            <div class="kpi"><i data-icon="repeat"></i><b>Retención de usuarios</b><small>Estudiantes que vuelven a
+                reservar</small></div>
+            <div class="kpi"><i data-icon="star"></i><b>Satisfacción</b><small>Calificación promedio de las
+                sesiones</small></div>
+          </div>
+          <footer class="s-foot"><span class="s-foot-brand"><span data-logo
+                data-size="20"></span>PeerLearn</span><span>Seminario de Emprendimiento e Innovación · I.U. Pascual
+              Bravo</span><span class="s-num mono"></span></footer>
+          <aside class="speaker-notes" data-presenter="Mariana Marín">
+            <p>Ya cerramos la fase de descubrimiento y hoy mostramos el prototipo.</p>
+            <p>El siguiente paso responsable es un piloto en <b>una sola asignatura</b>, para estimar la operación real
+              antes de escalar.</p>
+            <p>Estos son los 5 indicadores con los que vamos a decidir si PeerLearn funciona. Todos se pueden medir
+              desde la plataforma, excepto la reprobación, que requiere datos agregados de Registro Académico.</p>
+          </aside>
+        </section>
+
+        <!-- ============ 10 · EQUIPO & PROPUESTA ============ -->
+        <section class="slide slide-close dark" data-title="Equipo y propuesta">
+          <div class="cover-glow"></div>
+          <header class="s-head">
+            <span class="eyebrow mono">09 · Equipo y propuesta</span>
+            <h2>Lo que pedimos para pasar del prototipo al piloto</h2>
+          </header>
+          <div class="s10-grid">
+            <div class="team">
+              <article class="member"><span class="avatar" style="--h:221">MS</span>
+                <div><b>Martín Sánchez Urrego</b><small>Investigación y datos de reprobación</small></div>
+              </article>
+              <article class="member"><span class="avatar" style="--h:35">SM</span>
+                <div><b>Samuel Montoya Garzón</b><small>Análisis, reputación y calidad de tutores</small></div>
+              </article>
+              <article class="member"><span class="avatar" style="--h:160">JJ</span>
+                <div><b>Juan Sebastián Jiménez Sepúlveda</b><small>Flujos de usuario y prototipo funcional</small></div>
+              </article>
+              <article class="member"><span class="avatar" style="--h:330">MM</span>
+                <div><b>Mariana Marín Quintero</b><small>Wireframes, validación y KPIs</small></div>
+              </article>
+            </div>
+            <div class="asks">
+              <article class="ask"><span class="ask-n mono">01</span>
+                <div><b>Datos agregados de reprobación</b><small>Por asignatura crítica, para fijar la línea base del
+                    piloto.</small></div>
+              </article>
+              <article class="ask"><span class="ask-n mono">02</span>
+                <div><b>Aval de Bienestar Universitario</b><small>Para certificar horas sociales de los tutores
+                    pares.</small></div>
+              </article>
+              <article class="ask"><span class="ask-n mono">03</span>
+                <div><b>Espacio de difusión en primer semestre</b><small>Charlas cortas en clase y apoyo de docentes y
+                    monitores.</small></div>
+              </article>
+            </div>
+          </div>
+          <div class="close-line">
+            <div class="lockup sm"><span data-logo data-size="40"></span><span
+                class="lockup-word">Peer<b>Learn</b></span></div>
+            <p>Nadie debería perder una materia por no tener a quién preguntarle. <span
+                class="grad-gold">Gracias.</span></p>
+          </div>
+          <aside class="speaker-notes" data-presenter="Martín Sánchez">
+            <p>Presentar al equipo rápidamente (cada uno dice su nombre y su rol).</p>
+            <p>La petición concreta: tres cosas que no cuestan presupuesto y que nos permiten correr el piloto.</p>
+            <p>Cerrar volviendo a la pregunta del inicio: “Nadie debería perder una materia por no tener a quién
+              preguntarle.” Gracias, y abrir preguntas.</p>
+          </aside>
+        </section>
+
+      </div>
+    </div>
+
+    <!-- Controles de la presentación -->
+    <div class="deck-ui">
+      <div class="deck-progress"><span id="deck-progress-bar"></span></div>
+      <div class="deck-controls">
+        <div class="deck-left">
+          <span class="deck-brand"><span data-logo data-size="22"></span>PeerLearn · Pitch</span>
+          <span class="deck-title" id="deck-title"></span>
+        </div>
+        <div class="deck-center">
+          <button class="deck-btn" id="deck-prev" type="button" aria-label="Anterior"><i
+              data-icon="chevron-left"></i></button>
+          <span class="deck-count mono" id="deck-count">1 / 10</span>
+          <button class="deck-btn" id="deck-next" type="button" aria-label="Siguiente"><i
+              data-icon="chevron-right"></i></button>
+        </div>
+        <div class="deck-right">
+          <button class="deck-btn text theme-toggle-btn" id="deck-theme-btn" type="button"
+            title="Alternar modo oscuro/claro (tecla T)"><i data-icon="sun" class="icon-sun"></i><i data-icon="moon"
+              class="icon-moon"></i><span>Tema</span></button>
+          <button class="deck-btn text" id="deck-notes-btn" type="button" title="Notas del orador (N)"><i
+              data-icon="file-text"></i><span>Notas</span></button>
+          <button class="deck-btn text" id="deck-fs-btn" type="button" title="Pantalla completa (F)"><i
+              data-icon="maximize"></i><span>Pantalla completa</span></button>
+          <button class="deck-btn primary" data-mode="app" type="button" title="Ir a la demo (D)"><i data-icon="play"
+              class="fill"></i><span>Demo en vivo</span></button>
+        </div>
+      </div>
+    </div>
+    <aside class="notes-panel" id="notes-panel" aria-label="Notas del orador"></aside>
+  </div>
+
+  <script src="assets/js/icons.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/pitch.js"></script>
+</body>
+
+</html>

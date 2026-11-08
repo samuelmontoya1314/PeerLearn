@@ -1,0 +1,519 @@
+/* =========================================================================
+   PeerLearn · Branding Guidelines & Design System ("Pascual Bravo Tech")
+   Identidad Oficial:
+   - Azul Índigo Institucional: #1B1464 (Pascual Bravo), #0F0A38
+   - Azul Cobalto Interactivo: #2563EB / #1D4ED8 (Acciones primarias, botones, links)
+   - Oro Académico de Transformación: #F59E0B / #FBBF24 / #D97706 (Insignias de excelencia, parciales)
+   - Verde Esmeralda de Permanencia: #10B981 / #059669 (Notas verificadas SIA >= 4.0, asistencia)
+   - Neutros y Superficies de Alta Claridad: #FFFFFF, #F8FAFC, #E2E8F0, #1E293B
+   ========================================================================= */
+
+:root {
+  /* 1. Primarios Institucionales (Pascual Bravo Deep Indigo & Royal Navy) */
+  --c-indigo-night:   #0B0726; /* Fondos oscuros de pitch deck, contraste máximo */
+  --c-indigo-deep:    #1B1464; /* Azul Oficial Pascual Bravo: barras laterales, títulos ejecutivos */
+  --c-indigo-rich:    #241B7E; /* Subtítulos H2, bordes y superficies elevadas */
+  --c-indigo-surface: #2E2399; /* Elementos activos en modo oscuro */
+  --c-indigo-light:   #EEF2FF; /* Fondos de acento sutil, tags seleccionados */
+  --c-indigo-subtle:  #F5F7FF;
+
+  /* 2. Azul Cobalto Digital (EdTech Interactivo) */
+  --c-cobalt-primary: #2563EB; /* Botones principales, enlaces activos, foco */
+  --c-cobalt-hover:   #1D4ED8; /* Hover de acciones primarias */
+  --c-cobalt-light:   #DBEAFE; /* Badges y chips activos */
+  --c-cobalt-subtle:  #EFF6FF;
+
+  /* 3. Oro Académico & Innovación (Acento Pascual Bravo) */
+  --c-gold-primary:   #F59E0B; /* Oro académico: insignias de tutores, parciales, horas */
+  --c-gold-hover:     #D97706; /* Hover de acentos dorados */
+  --c-gold-light:     #FEF3C7; /* Fondos de alerta y advertencia constructiva */
+  --c-gold-subtle:    #FFFBEB;
+  --c-gold-border:    #FDE68A;
+
+  /* 4. Verde Esmeralda de Permanencia y Calidad (SIA Verificado) */
+  --c-success:        #10B981; /* Verde retención: nota validada SIA >= 4.0, asistencia */
+  --c-success-hover:  #059669;
+  --c-success-bg:     #ECFDF5;
+  --c-success-br:     #A7F3D0;
+
+  /* 5. Alerta de Reprobación / Materia Crítica (Carmesí Controlado) */
+  --c-fail:           #EF4444; /* Alertas de ausencias o alta tasa de reprobación */
+  --c-fail-bg:        #FEF2F2;
+  --c-fail-br:        #FECACA;
+
+  /* 6. Neutros de Precisión (Superficies y Texto) */
+  --c-paper:          #FFFFFF; /* Superficie de tarjetas y reportes */
+  --c-slate-bg:       #F8FAFC; /* Fondo general de la plataforma */
+  --c-slate-callout:  #F1F5F9; /* Cajas de metadatos */
+  --c-border:         #E2E8F0; /* Bordes de tablas y separadores 1px */
+  --c-border-subtle:  #F1F5F9; /* Grilla interna */
+  
+  /* Textos */
+  --c-text-strong:    #0F172A; /* Títulos, notas numéricas, máximo contraste */
+  --c-text-body:      #334155; /* Párrafos y descripciones */
+  --c-text-muted:     #64748B; /* Labels, subtextos y leyendas */
+  --c-text-light:     #94A3B8;
+
+  /* Mapeo Semántico */
+  --primary:          var(--c-cobalt-primary);
+  --primary-hover:    var(--c-cobalt-hover);
+  --bg-app:           var(--c-slate-bg);
+  --card-bg:          var(--c-paper);
+  --border:           var(--c-border);
+  --border-subtle:    var(--c-border-subtle);
+  --text-main:        var(--c-text-strong);
+  --text-muted:       var(--c-text-muted);
+
+  /* Tipografías Oficiales */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, 'SF Mono', monospace;
+
+  /* Geometría e ingeniería: Bordes equilibrados, modernos y sobrios */
+  --radius-xs: 3px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Sombras Técnicas */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
+}
+
+/* =========================================================================
+   Modo Oscuro Oficial ("Pascual Bravo Tech Dark")
+   ========================================================================= */
+:root[data-theme="dark"],
+body.theme-dark {
+  /* 1. Primarios y Fondos de Máxima Inmersión */
+  --c-indigo-night:   #060417;
+  --c-indigo-deep:    #0F0A38;
+  --c-indigo-rich:    #181254;
+  --c-indigo-surface: #241C78;
+  --c-indigo-light:   rgba(37, 99, 235, 0.22);
+  --c-indigo-subtle:  rgba(27, 20, 100, 0.35);
+
+  /* 2. Azul Cobalto Digital */
+  --c-cobalt-primary: #3B82F6;
+  --c-cobalt-hover:   #2563EB;
+  --c-cobalt-light:   rgba(59, 130, 246, 0.25);
+  --c-cobalt-subtle:  rgba(37, 99, 235, 0.16);
+
+  /* 3. Oro Académico & Innovación */
+  --c-gold-primary:   #FBBF24;
+  --c-gold-hover:     #F59E0B;
+  --c-gold-light:     rgba(251, 191, 36, 0.2);
+  --c-gold-subtle:    rgba(245, 158, 11, 0.15);
+  --c-gold-border:    rgba(251, 191, 36, 0.35);
+
+  /* 4. Verde Esmeralda (SIA Verificado) */
+  --c-success:        #34D399;
+  --c-success-hover:  #10B981;
+  --c-success-bg:     rgba(16, 185, 129, 0.16);
+  --c-success-br:     rgba(16, 185, 129, 0.35);
+
+  /* 5. Alerta de Reprobación */
+  --c-fail:           #F87171;
+  --c-fail-bg:        rgba(239, 68, 68, 0.16);
+  --c-fail-br:        rgba(239, 68, 68, 0.35);
+
+  /* 6. Neutros y Superficies en Modo Oscuro */
+  --c-paper:          #110C36; /* Superficie elevada: tarjetas, modales, drawer */
+  --c-slate-bg:       #0A0624; /* Fondo general de la plataforma */
+  --c-slate-callout:  #161045; /* Cajas de metadatos */
+  --c-border:         rgba(255, 255, 255, 0.12); /* Bordes sutiles y limpios */
+  --c-border-subtle:  rgba(255, 255, 255, 0.06);
+
+  /* Textos de Alto Contraste */
+  --c-text-strong:    #F8FAFC;
+  --c-text-body:      #CBD5E1;
+  --c-text-muted:     #94A3B8;
+  --c-text-light:     #64748B;
+
+  /* Mapeo Semántico */
+  --primary:          var(--c-cobalt-primary);
+  --primary-hover:    var(--c-cobalt-hover);
+  --bg-app:           var(--c-slate-bg);
+  --card-bg:          var(--c-paper);
+  --border:           var(--c-border);
+  --border-subtle:    var(--c-border-subtle);
+  --text-main:        var(--c-text-strong);
+  --text-muted:       var(--c-text-muted);
+
+  /* Sombras oscuras */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.55);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-app);
+  color: var(--c-text-body);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body.no-scroll {
+  overflow: hidden;
+}
+
+/* Modos de visualización (App vs Pitch) */
+body.mode-pitch .app {
+  display: none !important;
+}
+body.mode-pitch .pitch {
+  display: flex !important;
+}
+
+body.mode-app .pitch {
+  display: none !important;
+}
+body.mode-app .app {
+  display: flex !important;
+}
+
+/* Tipografía Numérica Mono */
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1;
+}
+
+h1, h2, h3, h4, .brand-word, .lockup-word {
+  font-family: var(--font-sans);
+  color: var(--c-text-strong);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Oro Académico Pascual Bravo */
+.grad-gold {
+  color: var(--c-gold-primary);
+  font-weight: 800;
+}
+
+/* Íconos SVG alineados */
+.ic {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* =========================================================================
+   Botones de Identidad (Pascual Bravo Tech)
+   ========================================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn.sm {
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: var(--radius-xs);
+}
+.btn.lg {
+  padding: 12px 24px;
+  font-size: 15px;
+  border-radius: var(--radius-md);
+}
+.btn.block {
+  width: 100%;
+}
+
+.btn-primary {
+  background-color: var(--c-cobalt-primary);
+  border-color: #1D4ED8;
+  color: #FFFFFF;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--c-cobalt-hover);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--card-bg);
+  border-color: var(--c-border);
+  color: var(--c-text-strong);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--c-slate-callout);
+  border-color: var(--c-border);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--c-text-muted);
+}
+.btn-ghost:hover:not(:disabled) {
+  background-color: var(--c-indigo-light);
+  color: var(--c-text-strong);
+}
+
+.btn-gold {
+  background-color: var(--c-gold-primary);
+  border-color: var(--c-gold-hover);
+  color: #FFFFFF;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.25);
+}
+.btn-gold:hover:not(:disabled) {
+  background-color: var(--c-gold-hover);
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-danger-ghost {
+  background: transparent;
+  color: var(--c-fail);
+}
+.btn-danger-ghost:hover:not(:disabled) {
+  background: var(--c-fail-bg);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Botón de Ícono */
+.icon-btn {
+  background: transparent;
+  border: 1px solid var(--c-border);
+  color: var(--c-text-muted);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.icon-btn:hover {
+  background-color: var(--c-indigo-light);
+  color: var(--c-text-strong);
+  border-color: var(--c-cobalt-primary);
+}
+.icon-btn.on-dark {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.icon-btn.on-dark:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+
+/* Theme Toggle Button Behavior */
+.theme-toggle-btn .icon-sun {
+  display: none;
+}
+.theme-toggle-btn .icon-moon {
+  display: inline-block;
+}
+:root[data-theme="dark"] .theme-toggle-btn .icon-sun,
+body.theme-dark .theme-toggle-btn .icon-sun {
+  display: inline-block;
+  color: var(--c-gold-primary);
+}
+:root[data-theme="dark"] .theme-toggle-btn .icon-moon,
+body.theme-dark .theme-toggle-btn .icon-moon {
+  display: none;
+}
+
+/* Avatares Técnicos */
+.avatar {
+  background-color: var(--c-indigo-deep);
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.avatar.ring {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--c-gold-primary);
+}
+.avatar.xs {
+  width: 24px;
+  height: 24px;
+  font-size: 10px;
+}
+.avatar.sm {
+  width: 30px;
+  height: 30px;
+  font-size: 11.5px;
+}
+
+/* Badges e Insignias */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.tag.tag-pay {
+  background-color: var(--c-cobalt-subtle);
+  color: var(--c-cobalt-primary);
+  border: 1px solid var(--c-cobalt-light);
+}
+.tag.tag-social {
+  background-color: var(--c-gold-subtle);
+  color: var(--c-gold-hover);
+  border: 1px solid var(--c-gold-border);
+}
+.tag.tag-credit {
+  background-color: var(--c-success-bg);
+  color: var(--c-success);
+  border: 1px solid var(--c-success-br);
+}
+.tag.tag-ghost {
+  background-color: var(--c-slate-bg);
+  color: var(--c-text-muted);
+  border: 1px solid var(--c-border);
+}
+
+/* Chips Técnicos */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 9px;
+  background-color: var(--c-slate-bg);
+  color: var(--c-text-body);
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--c-border);
+  transition: all 0.12s ease;
+}
+.chip.chip-match {
+  background-color: var(--c-indigo-light);
+  color: var(--c-indigo-deep);
+  border-color: #C7D2FE;
+  font-weight: 600;
+}
+.chip.chip-btn {
+  cursor: pointer;
+}
+.chip.chip-btn:hover {
+  background-color: #E0E7FF;
+  border-color: var(--c-indigo-deep);
+  color: var(--c-indigo-deep);
+}
+.chip.chip-select {
+  cursor: pointer;
+  padding: 5px 11px;
+  font-size: 12.5px;
+}
+.chip.chip-select.on {
+  background-color: var(--c-indigo-deep);
+  border-color: var(--c-indigo-night);
+  color: #fff;
+}
+.chip.chip-active {
+  background-color: var(--c-indigo-light);
+  color: var(--c-indigo-deep);
+  border-color: #C7D2FE;
+  cursor: pointer;
+}
+
+/* Estrellas Académicas */
+.stars {
+  display: inline-flex;
+  gap: 2px;
+  color: #CBD5E1;
+}
+.stars .star.fill {
+  color: var(--c-gold-primary);
+  fill: var(--c-gold-primary);
+}
+
+/* Status Chips */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  text-transform: uppercase;
+}
+.st-confirmada {
+  background: var(--c-success-bg);
+  color: var(--c-success);
+  border: 1px solid var(--c-success-br);
+}
+.st-pendiente {
+  background: var(--c-gold-subtle);
+  color: var(--c-gold-hover);
+  border: 1px solid var(--c-gold-border);
+}
+.st-completada {
+  background: var(--c-slate-bg);
+  color: var(--c-text-muted);
+  border: 1px solid var(--c-border);
+}
+.st-cancelada {
+  background: var(--c-fail-bg);
+  color: var(--c-fail);
+  border: 1px solid var(--c-fail-br);
+}
+
+/* Enlaces */
+.link {
+  background: none;
+  border: none;
+  color: var(--c-cobalt-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.link:hover {
+  text-decoration: underline;
+  color: var(--c-cobalt-hover);
+}
+.link.muted {
+  color: var(--c-text-muted);
+}
+.link.on-dark {
+  color: #fff;
+}

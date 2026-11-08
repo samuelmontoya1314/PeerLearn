@@ -1,0 +1,8 @@
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Prototipo viejo y documento pesado de Word (opcional mantenerlos solo locales)
+gemini-code-1786828989998(1).html
+~$*.docx
